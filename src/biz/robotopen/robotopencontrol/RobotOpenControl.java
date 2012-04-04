@@ -61,16 +61,39 @@ public class RobotOpenControl extends Activity implements Observer {
     
     @Override
     protected void onPause() {
+    	try {
     	// End Ethernet communications
     	robotInstance.getPacketTransmitter().setDisabled();
 		robotInstance.getPacketTransmitter().terminate();
+    	} catch (Exception e) {
+    		// ignore
+    	}
     	
     	super.onPause();
     }
     
     @Override
+    protected void onDestroy() {
+    	try {
+        	// End Ethernet communications
+        	robotInstance.getPacketTransmitter().setDisabled();
+    		robotInstance.getPacketTransmitter().terminate();
+        } catch (Exception e) {
+        	// ignore
+        }
+    	
+    	super.onDestroy();
+    }
+    
+    @Override
     protected void onResume() {
     	super.onResume();
+    	
+    	joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
+        
+		robotInstance = new RORobotInstance(joystick);
+		robotInstance.getDashboardData().addObserver(this);
+		robotInstance.getJoystickHandler().addObserver(this);
     	
     	// Update networking settings
     	//updateNetworking();
