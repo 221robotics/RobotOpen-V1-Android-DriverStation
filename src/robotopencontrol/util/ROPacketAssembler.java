@@ -1,6 +1,7 @@
 package robotopencontrol.util;
 
-import robotopencontrol.instance.ROJoystickHandler;
+import robotopencontrol.instance.ROJoystick;
+
 
 /* ---PACKET FORMAT---
  * Message Type (1 byte)
@@ -15,7 +16,7 @@ import robotopencontrol.instance.ROJoystickHandler;
  */
 public class ROPacketAssembler {
     
-    public static byte[] getXmitBytes(ROJoystickHandler joystickHandler, boolean feedback) {
+    public static byte[] getXmitBytes(ROJoystick joystickHandler, boolean feedback) {
     	byte messageType;
     	if (feedback)
     		messageType = ROMessageTypes.FEEDBACK_PACKET;

@@ -1,27 +1,24 @@
 package biz.robotopen.robotopencontrol;
 
-import com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView;
-
 import robotopencontrol.instance.RODashboardData;
-import robotopencontrol.instance.ROJoystickHandler;
+import robotopencontrol.instance.ROJoystick;
 import robotopencontrol.instance.ROPacketTransmitter;
 
 /**
  * @author ebarch
  */
 public class RORobotInstance {
-    private ROJoystickHandler joystickHandler;
+    private ROJoystick joystickHandler;
     private RODashboardData dashboardData;
     private ROPacketTransmitter packetTransmitter;
     
-    public RORobotInstance(DualJoystickView dualjoystick) {
-        joystickHandler = new ROJoystickHandler(dualjoystick);
+    public RORobotInstance(ROJoystick joystick) {
         dashboardData = new RODashboardData();
-        packetTransmitter = new ROPacketTransmitter(joystickHandler);
+        packetTransmitter = new ROPacketTransmitter(joystick);
         packetTransmitter.setDashboardData(dashboardData);
     }
     
-    public ROJoystickHandler getJoystickHandler() {
+    public ROJoystick getJoystickHandler() {
     	return joystickHandler;
     }
     

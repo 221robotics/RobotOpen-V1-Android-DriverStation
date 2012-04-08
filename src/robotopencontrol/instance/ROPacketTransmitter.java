@@ -11,23 +11,20 @@ import java.net.InetAddress;
  * @author Eric Barch
  */
 public class ROPacketTransmitter extends Thread {
-    private ROJoystickHandler joystickHandler;
-    // Should we be sending data?
-    private volatile boolean active = false;
-    // Feedback or actual control packet?
-    private boolean enabled = false;
+    private ROJoystick joystickHandler;
     // Used to send data out of
     private DatagramSocket serverSocket;
     // IP to send data to
+    private boolean active = true;
     private InetAddress ipAddr;
     // Port to send data to
     private int port = 22211;
     // Rate at which to transmit packets (ms)
-    private int packetRate = 20;
+    private int packetRate = 25;
     // RODashboardData to store received data
     private RODashboardData dashboardData;
    
-    public ROPacketTransmitter(ROJoystickHandler assignedJoystickHandler) {
+    public ROPacketTransmitter(ROJoystick assignedJoystickHandler) {
         try {
             ipAddr = InetAddress.getByName("192.168.1.22");
         }
@@ -37,36 +34,25 @@ public class ROPacketTransmitter extends Thread {
         try {
             serverSocket = new DatagramSocket(port);
             serverSocket.setSoTimeout(250);
+            start();
         }
         catch (Exception e) {
-            active = false;
             System.out.println(e.toString());
-        }
-        
-        start();
+        }    
     }
     
-    public void setJoystickHandler(ROJoystickHandler assignedJoystickHandler) {
+    public void setJoystickHandler(ROJoystick assignedJoystickHandler) {
         joystickHandler = assignedJoystickHandler;
-    }
-    
-    public void setEnabled() {
-    	enabled = true;
-    }
-    
-    public void setDisabled() {
-    	enabled = false;
-    }
-    
-    /* Call this to start the main networking thread */
-    public synchronized void beginXmit(){
-        active = true;
     }
     
     /* Call this to stop the main networking thread */
     public synchronized void terminate(){
-    	enabled = false;
         active = false;
+        try {
+        	serverSocket.close();
+        } catch (Exception e) {
+        	System.out.println(e.toString());
+        }
     }
     
     public void setDashboardData(RODashboardData newDashboardData) {
@@ -74,17 +60,18 @@ public class ROPacketTransmitter extends Thread {
     }
 
     public void run() {
-        while (true) {
-        	
-        	// Create a buffer to read datagrams into
-            byte[] buffer = new byte[1500];
-
-            // Create a packet to receive data into the buffer
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        while (active) {
             
-        	if (active) {
+        	if (joystickHandler.controllerActive()) {
+        		
+        		// Create a buffer to read datagrams into
+                byte[] buffer = new byte[256];
+
+                // Create a packet to receive data into the buffer
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        		
 	            try {
-	                byte[] outgoingPacket = ROPacketAssembler.getXmitBytes(joystickHandler, !enabled);
+	                byte[] outgoingPacket = ROPacketAssembler.getXmitBytes(joystickHandler, false);
 	                
 	                /* BEGIN OUTPUT DEBUG */
 	                /*StringBuffer hexString = new StringBuffer();
@@ -141,9 +128,5 @@ public class ROPacketTransmitter extends Thread {
             packetRate = targetPacketRate;
         }
         catch (Exception e) {System.out.println(e.toString());}
-    }
-    
-    public boolean currentlyTransmitting() {
-        return active;
     }
 }
