@@ -14,8 +14,13 @@ public class ROPacketTransmitter extends Thread {
     private ROJoystick joystickHandler;
     // Used to send data out of
     private DatagramSocket serverSocket;
-    // IP to send data to
+    
+    private boolean connected = false;
+    
+    private boolean enabled = false;
+    
     private boolean active = true;
+    // IP to send data to
     private InetAddress ipAddr;
     // Port to send data to
     private int port = 22211;
@@ -45,6 +50,14 @@ public class ROPacketTransmitter extends Thread {
         joystickHandler = assignedJoystickHandler;
     }
     
+    public void setConnected(boolean state) {
+    	connected = state;
+    }
+    
+    public void setEnabled(boolean state) {
+    	enabled = state;
+    }
+    
     /* Call this to stop the main networking thread */
     public synchronized void terminate(){
         active = false;
@@ -62,7 +75,7 @@ public class ROPacketTransmitter extends Thread {
     public void run() {
         while (active) {
             
-        	if (joystickHandler.controllerActive()) {
+        	if (connected) {
         		
         		// Create a buffer to read datagrams into
                 byte[] buffer = new byte[256];
@@ -71,7 +84,7 @@ public class ROPacketTransmitter extends Thread {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         		
 	            try {
-	                byte[] outgoingPacket = ROPacketAssembler.getXmitBytes(joystickHandler, false);
+	                byte[] outgoingPacket = ROPacketAssembler.getXmitBytes(joystickHandler, !enabled);
 	                
 	                /* BEGIN OUTPUT DEBUG */
 	                /*StringBuffer hexString = new StringBuffer();
@@ -109,7 +122,7 @@ public class ROPacketTransmitter extends Thread {
 	            }
 	            catch (Exception e) {
 	                active = false;
-	                System.out.println(e.toString());
+	                e.printStackTrace();
 	            }
         	}
         	else {

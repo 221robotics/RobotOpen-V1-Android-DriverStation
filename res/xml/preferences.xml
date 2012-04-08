@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Network Settings">
+    <PreferenceCategory android:title="RobotOpen Settings">
         <EditTextPreference android:key="ipaddress" android:title="IP Address" android:summary="IP to send controller data" android:defaultValue="192.168.1.22"></EditTextPreference>
         <EditTextPreference android:key="txinterval" android:title="Packet Tx Interval" android:summary="Value (in ms) of packet xmit" android:defaultValue="25"></EditTextPreference>
+        <EditTextPreference android:key="ipcam" android:title="Configure Camera" android:summary="URL of MJPEG Stream" android:defaultValue="http://192.168.1.2/video.cgi"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>

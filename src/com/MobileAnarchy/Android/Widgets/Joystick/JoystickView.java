@@ -123,7 +123,7 @@ public class JoystickView extends View {
 		dbgPaint2.setStyle(Paint.Style.STROKE);
 		
 		bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		bgPaint.setColor(Color.BLACK);
+		bgPaint.setColor(Color.rgb(30, 30, 30));
 		bgPaint.setStrokeWidth(1);
 		bgPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 

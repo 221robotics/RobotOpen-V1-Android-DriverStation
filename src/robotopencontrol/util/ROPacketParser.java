@@ -19,12 +19,13 @@ import robotopencontrol.instance.RODashboardData;
 public class ROPacketParser {
     
     public static void parsePacket(byte[] packet, int length, RODashboardData dashboardData) {
+    	
         // Split up the packet
     	byte[] packetPayload = new byte[length-2];
     	byte[] feedbackData = new byte[length-8];
     	byte[] packetChecksum = new byte[2];
     	System.arraycopy(packet, 0, packetPayload, 0, length-2);
-    	System.arraycopy(packet, 6, feedbackData, 0, length-2);
+    	System.arraycopy(packet, 6, feedbackData, 0, length-8);
     	System.arraycopy(packet, length-2, packetChecksum, 0, 2);
 
         // Calculate the CRC16

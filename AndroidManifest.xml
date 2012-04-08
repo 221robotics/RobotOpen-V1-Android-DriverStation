@@ -19,7 +19,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="USBJoystickActivity"></activity>
         <activity android:label="Preferences" android:name="Preferences"
         android:screenOrientation="landscape"></activity>
     </application>
