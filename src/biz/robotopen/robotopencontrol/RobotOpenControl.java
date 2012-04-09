@@ -5,6 +5,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import robotopencontrol.instance.ROJoystick;
+import robotopencontrol.instance.ROUSBJoystick;
 import robotopencontrol.instance.ROVirtualJoystick;
 
 import com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView;
@@ -39,6 +40,7 @@ public class RobotOpenControl extends Activity implements Observer {
 	private Thread camera_thread;
 	private ArrayAdapter<String> adapter;
 	private ArrayList<String> dsArrayList;
+	private boolean usbJoystickMode = false;
 	
     /** Called when the activity is first created. */
     @Override
@@ -47,15 +49,10 @@ public class RobotOpenControl extends Activity implements Observer {
 
         setContentView(R.layout.main);
         
-        //String[] loadingDS = new String[1];
-        //loadingDS[0] = "Waiting for DS data...";
-        
+        // Setup DS data list view
         dsArrayList = new ArrayList<String>();
-        
         dsArrayList.add("Waiting for DS data...");
-        
         ListView listView = (ListView) findViewById(R.id.dsList);
-        
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, dsArrayList);
         
         // Assign adapter to ListView
@@ -101,8 +98,14 @@ public class RobotOpenControl extends Activity implements Observer {
     	preferences = PreferenceManager.getDefaultSharedPreferences(this);
     	        
     	// Setup the RobotOpen instance
-    	joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
-    	joystickHandler = new ROVirtualJoystick(joystick);
+    	if (usbJoystickMode) {
+    		joystickHandler = new ROUSBJoystick();
+    	}
+    	else {
+    		joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
+        	joystickHandler = new ROVirtualJoystick(joystick);
+    	}
+    	
     	robotInstance = new RORobotInstance(joystickHandler);
 		robotInstance.getDashboardData().addObserver(this);
     	
@@ -130,6 +133,14 @@ public class RobotOpenControl extends Activity implements Observer {
 	        camera_thread.start();
 	    } else {
 	        Toast.makeText(this, "Camera Disabled", Toast.LENGTH_SHORT).show();
+	        
+	        try {
+	        	mv.stopPlayback();
+				camera_thread.join();
+			} catch (InterruptedException e) {
+				// Auto-generated catch block
+				e.printStackTrace();
+			}
 	    }
 	}
 	
@@ -158,6 +169,25 @@ public class RobotOpenControl extends Activity implements Observer {
 	        robotInstance.getPacketTransmitter().setEnabled(false);
 	    }
 	}
+	
+	public void onUSBBtn(View v) {
+		// Perform action on clicks
+	    if (((ToggleButton) v).isChecked()) {
+	        Toast.makeText(this, "USB Joystick Enabled", Toast.LENGTH_SHORT).show();
+	        
+	        joystickHandler = new ROUSBJoystick();
+	        robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
+	        
+	        usbJoystickMode = true;
+	    } else {
+	        Toast.makeText(this, "USB Joystick Disabled", Toast.LENGTH_SHORT).show();
+	        usbJoystickMode = false;
+	        
+	        joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
+	        joystickHandler = new ROVirtualJoystick(joystick);
+	        robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
+	    }
+	}
     
     @Override
     protected void onPause() {
@@ -176,23 +206,110 @@ public class RobotOpenControl extends Activity implements Observer {
     
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-		//((TextView)findViewById(R.id.textview)).setText("Event: " + keyCode);
+    	if (!usbJoystickMode)
+    		return super.onKeyDown(keyCode, event);
+    	
+    	ROUSBJoystick joy = (ROUSBJoystick) joystickHandler;
     	
     	switch(keyCode) {
         	case KeyEvent.KEYCODE_BUTTON_L1:
+        		joy.reportEventDown(keyCode);
+        		return true;
         	case KeyEvent.KEYCODE_BUTTON_R1:
+        		joy.reportEventDown(keyCode);
+        		return true;
         	case KeyEvent.KEYCODE_BUTTON_THUMBR:
+        		joy.reportEventDown(keyCode);
+        		return true;
         	case KeyEvent.KEYCODE_BUTTON_THUMBL:
+        		joy.reportEventDown(keyCode);
+        		return true;
         	case KeyEvent.KEYCODE_DPAD_LEFT:
+        		joy.reportEventDown(keyCode);
+        		return true;
 	        case KeyEvent.KEYCODE_DPAD_RIGHT:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_DPAD_UP:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_DPAD_DOWN:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_BUTTON_START:
-	        case KeyEvent.KEYCODE_BUTTON_MODE://Big button in the middle
+	        	joy.reportEventDown(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BACK:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_BUTTON_B:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_BUTTON_A:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_BUTTON_X:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
 	        case KeyEvent.KEYCODE_BUTTON_Y:
+	        	joy.reportEventDown(keyCode);
+	        	return true;
+	        default:
+	        	return super.onKeyDown(keyCode, event);
+    	}
+
+    }
+    
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+    	if (!usbJoystickMode)
+    		return super.onKeyDown(keyCode, event);
+    	
+    	ROUSBJoystick joy = (ROUSBJoystick) joystickHandler;
+    	
+    	switch(keyCode) {
+        	case KeyEvent.KEYCODE_BUTTON_L1:
+        		joy.reportEventUp(keyCode);
+        		return true;
+        	case KeyEvent.KEYCODE_BUTTON_R1:
+        		joy.reportEventUp(keyCode);
+        		return true;
+        	case KeyEvent.KEYCODE_BUTTON_THUMBR:
+        		joy.reportEventUp(keyCode);
+        		return true;
+        	case KeyEvent.KEYCODE_BUTTON_THUMBL:
+        		joy.reportEventUp(keyCode);
+        		return true;
+        	case KeyEvent.KEYCODE_DPAD_LEFT:
+        		joy.reportEventUp(keyCode);
+        		return true;
+	        case KeyEvent.KEYCODE_DPAD_RIGHT:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_DPAD_UP:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_DPAD_DOWN:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BUTTON_START:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BACK:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BUTTON_B:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BUTTON_A:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BUTTON_X:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
+	        case KeyEvent.KEYCODE_BUTTON_Y:
+	        	joy.reportEventUp(keyCode);
+	        	return true;
 	        default:
 	        	return super.onKeyDown(keyCode, event);
     	}
@@ -201,17 +318,28 @@ public class RobotOpenControl extends Activity implements Observer {
 	
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
-		
-		//((TextView)findViewById(R.id.textview)).setText("Motion: " + event.getX());
-	 
-	    //Log.d("Right Trigger Value", event.getAxisValue(MotionEvent.AXIS_RTRIGGER) + "");
-	    //Log.d("Left Trigger Value", event.getAxisValue(MotionEvent.AXIS_LTRIGGER) + "");
-	 
-	    //Log.d("Left Stick X", event.getX() + "");
-	    //Log.d("Left Stick Y", event.getY() + "");
-	 
-	    //Log.d("Right Stick Y", event.getAxisValue(MotionEvent.AXIS_RZ) + "");
-	    //Log.d("Right Stick X", event.getAxisValue(MotionEvent.AXIS_Z) + ""); 
+		if (!usbJoystickMode)
+			return super.onGenericMotionEvent(event);
+    	
+    	ROUSBJoystick joy = (ROUSBJoystick) joystickHandler;
+    	
+    	// Update Triggers
+    	if (event.getAxisValue(MotionEvent.AXIS_RTRIGGER) > 0.5)
+    		joy.rTriggerEvent(true);
+    	else
+    		joy.rTriggerEvent(false);
+    	if (event.getAxisValue(MotionEvent.AXIS_LTRIGGER) > 0.5)
+    		joy.lTriggerEvent(true);
+    	else
+    		joy.lTriggerEvent(false);
+    	
+    	// Update left stick
+    	joy.updateLeftX(event.getX());
+    	joy.updateLeftY(event.getY());
+    	
+    	// Update right stick
+    	joy.updateRightX(event.getAxisValue(MotionEvent.AXIS_Z));
+    	joy.updateRightY(event.getAxisValue(MotionEvent.AXIS_RZ));
 	 
 	    return super.onGenericMotionEvent(event);
 	}

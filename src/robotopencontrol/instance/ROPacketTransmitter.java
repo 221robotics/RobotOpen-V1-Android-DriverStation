@@ -14,11 +14,11 @@ public class ROPacketTransmitter extends Thread {
     private ROJoystick joystickHandler;
     // Used to send data out of
     private DatagramSocket serverSocket;
-    
+    // Should we be transmitting packets?
     private boolean connected = false;
-    
+    // Send control packets
     private boolean enabled = false;
-    
+    // The condition under which our thread continues to run
     private boolean active = true;
     // IP to send data to
     private InetAddress ipAddr;
