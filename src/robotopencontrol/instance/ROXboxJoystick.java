@@ -5,7 +5,7 @@ import android.view.KeyEvent;
 /**
  * @author Eric Barch
  */
-public class ROUSBJoystick implements ROJoystick {
+public class ROXboxJoystick implements ROJoystick {
     
     //private boolean leftActive, rightActive = false;
     private float leftX, leftY, rightX, rightY = 0;
@@ -26,7 +26,7 @@ public class ROUSBJoystick implements ROJoystick {
     public static final int BTN10 = 18;
    
     // Our constructor for the ROJoystickHandler object
-    public ROUSBJoystick() {
+    public ROXboxJoystick() {
     	exportValues = new byte[19];
     	for (int i = 0; i < exportValues.length; i++) {
         	exportValues[i] = (byte)(int)0;

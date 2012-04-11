@@ -1,11 +1,13 @@
 package biz.robotopen.robotopencontrol;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
 
 import robotopencontrol.instance.ROJoystick;
-import robotopencontrol.instance.ROUSBJoystick;
+import robotopencontrol.instance.ROXboxJoystick;
 import robotopencontrol.instance.ROVirtualJoystick;
 
 import com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView;
@@ -14,8 +16,13 @@ import de.mjpegsample.MjpegView.MjpegInputStream;
 import de.mjpegsample.MjpegView.MjpegView;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
@@ -57,6 +64,11 @@ public class RobotOpenControl extends Activity implements Observer {
         
         // Assign adapter to ListView
      	listView.setAdapter(adapter);
+     	
+     	// Register our receiver so that we know when a USB device is disconnected
+     	IntentFilter filter = new IntentFilter();
+     	filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+     	registerReceiver(mUsbReceiver, filter);
     }
     
     /* Call this whenever the network settings need to be reloaded */
@@ -67,6 +79,23 @@ public class RobotOpenControl extends Activity implements Observer {
     		// Networking exception
     	}
     }
+    
+    BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+        	String action = intent.getAction();
+
+        	if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+        		UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (device != null) {
+                	if (device.getVendorId() == 1118 || device.getVendorId() == 1133) {
+                		// Kill the robot - controller was disconnected
+                		robotInstance.getPacketTransmitter().terminate();
+                	}
+                }
+            }
+        	
+        }
+    };
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -99,7 +128,7 @@ public class RobotOpenControl extends Activity implements Observer {
     	        
     	// Setup the RobotOpen instance
     	if (usbJoystickMode) {
-    		joystickHandler = new ROUSBJoystick();
+    		joystickHandler = new ROXboxJoystick();
     	}
     	else {
     		joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
@@ -115,6 +144,7 @@ public class RobotOpenControl extends Activity implements Observer {
         mv = (MjpegView)findViewById(R.id.camera);
         mv.setDisplayMode(MjpegView.SIZE_BEST_FIT);
         mv.showFps(true);
+
     }
 	
 	public void onCameraBtn(View v) {
@@ -175,10 +205,25 @@ public class RobotOpenControl extends Activity implements Observer {
 	    if (((ToggleButton) v).isChecked()) {
 	        Toast.makeText(this, "USB Joystick Enabled", Toast.LENGTH_SHORT).show();
 	        
-	        joystickHandler = new ROUSBJoystick();
-	        robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
+	        String controllerType = "";
 	        
-	        usbJoystickMode = true;
+	        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+	        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+	        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+	        while(deviceIterator.hasNext()){
+	        	UsbDevice device = deviceIterator.next();
+	        	
+	        	if (device.getVendorId() == 1118)
+	        		controllerType = "Xbox";
+	        	else if (device.getVendorId() == 1133)
+	        		controllerType = "Logitech";
+	        }
+	        
+	        if (controllerType == "Xbox") {
+	        	joystickHandler = new ROXboxJoystick();
+	        	robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
+	        	usbJoystickMode = true;
+	        }
 	    } else {
 	        Toast.makeText(this, "USB Joystick Disabled", Toast.LENGTH_SHORT).show();
 	        usbJoystickMode = false;
@@ -209,7 +254,7 @@ public class RobotOpenControl extends Activity implements Observer {
     	if (!usbJoystickMode)
     		return super.onKeyDown(keyCode, event);
     	
-    	ROUSBJoystick joy = (ROUSBJoystick) joystickHandler;
+    	ROXboxJoystick joy = (ROXboxJoystick) joystickHandler;
     	
     	switch(keyCode) {
         	case KeyEvent.KEYCODE_BUTTON_L1:
@@ -265,7 +310,7 @@ public class RobotOpenControl extends Activity implements Observer {
     	if (!usbJoystickMode)
     		return super.onKeyDown(keyCode, event);
     	
-    	ROUSBJoystick joy = (ROUSBJoystick) joystickHandler;
+    	ROXboxJoystick joy = (ROXboxJoystick) joystickHandler;
     	
     	switch(keyCode) {
         	case KeyEvent.KEYCODE_BUTTON_L1:
@@ -321,7 +366,7 @@ public class RobotOpenControl extends Activity implements Observer {
 		if (!usbJoystickMode)
 			return super.onGenericMotionEvent(event);
     	
-    	ROUSBJoystick joy = (ROUSBJoystick) joystickHandler;
+    	ROXboxJoystick joy = (ROXboxJoystick) joystickHandler;
     	
     	// Update Triggers
     	if (event.getAxisValue(MotionEvent.AXIS_RTRIGGER) > 0.5)
