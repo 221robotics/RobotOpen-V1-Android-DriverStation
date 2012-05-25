@@ -25,6 +25,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,6 +34,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -48,6 +50,8 @@ public class RobotOpenControl extends Activity implements Observer {
 	private ArrayAdapter<String> adapter;
 	private ArrayList<String> dsArrayList;
 	private boolean usbJoystickMode = false;
+	private TextView joyFeedback;
+	private boolean camSourceSet = false;
 	
     /** Called when the activity is first created. */
     @Override
@@ -55,6 +59,8 @@ public class RobotOpenControl extends Activity implements Observer {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main);
+        
+        joyFeedback = (TextView)findViewById(R.id.joystickFeedback);
         
         // Setup DS data list view
         dsArrayList = new ArrayList<String>();
@@ -89,7 +95,20 @@ public class RobotOpenControl extends Activity implements Observer {
                 if (device != null) {
                 	if (device.getVendorId() == 1118) {
                 		// Kill the robot - controller was disconnected
-                		robotInstance.getPacketTransmitter().terminate();
+                		Toast.makeText(getApplicationContext(), "Controller Disconnected", Toast.LENGTH_SHORT).show();
+            	        
+            	        robotInstance.getPacketTransmitter().setEnabled(false);
+            	        
+            	        ToggleButton enableBtn = (ToggleButton)findViewById(R.id.enablebtn);
+            	        ToggleButton usbBtn = (ToggleButton)findViewById(R.id.enableusb);
+            	        enableBtn.setChecked(false);
+            	        usbBtn.setChecked(false);
+            	        
+            	        usbJoystickMode = false;
+            	        
+            	        joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
+            	        joystickHandler = new ROVirtualJoystick(joystick);
+            	        robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
                 	}
                 }
             }
@@ -153,21 +172,36 @@ public class RobotOpenControl extends Activity implements Observer {
 	        Toast.makeText(this, "Camera Enabled", Toast.LENGTH_SHORT).show();
 	        
 	        // Camera code
-	    	final String URL = preferences.getString("ipcam", "http://192.168.1.2/video.cgi");
+	    	final String URL = preferences.getString("ipcam", "http://192.168.1.110/cgi/mjpg/mjpg.cgi");
+	    	
+	    	final String camuser = preferences.getString("ipcam-user", "none");
+	    	final String campass = preferences.getString("ipcam-pass", "none");
 	        
-	        camera_thread = new Thread(new Runnable() {
-	        	public void run() {
-	        		mv.setSource(MjpegInputStream.read(URL));
-	        	}
-	        });
-	        camera_thread.start();
+	        if (!camSourceSet) {
+		        camera_thread = new Thread(new Runnable() {
+		        	public void run() {
+		        		camSourceSet = true;
+		        		mv.setSource(MjpegInputStream.read(URL, camuser, campass));
+		        		Log.d("ADSDSFFS", "MADE IT HERE");
+		        	}
+		        });
+		        camera_thread.start();
+		        try {
+					camera_thread.join();
+					Log.d("ADSDSFFS", "JOINED!");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	        }
+	        else {
+	        	mv.resumePlayback();
+	        }
 	    } else {
 	        Toast.makeText(this, "Camera Disabled", Toast.LENGTH_SHORT).show();
 	        
 	        try {
 	        	mv.stopPlayback();
-				camera_thread.join();
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -203,8 +237,6 @@ public class RobotOpenControl extends Activity implements Observer {
 	public void onUSBBtn(View v) {
 		// Perform action on clicks
 	    if (((ToggleButton) v).isChecked()) {
-	        Toast.makeText(this, "USB Joystick Enabled", Toast.LENGTH_SHORT).show();
-	        
 	        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 	        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
 	        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
@@ -212,10 +244,16 @@ public class RobotOpenControl extends Activity implements Observer {
 	        	UsbDevice device = deviceIterator.next();
 	        	
 	        	if (device.getVendorId() == 1118) {
+	        		Toast.makeText(this, "USB Joystick Enabled", Toast.LENGTH_SHORT).show();
 	        		joystickHandler = new ROXboxJoystick();
 		        	robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
 		        	usbJoystickMode = true;
 	        	}
+	        }
+	        
+	        if (!usbJoystickMode) {
+	        	Toast.makeText(this, "USB Joystick Not Found", Toast.LENGTH_SHORT).show();
+	        	((ToggleButton) v).setChecked(false);
 	        }
 	        
 	    } else {
@@ -233,9 +271,15 @@ public class RobotOpenControl extends Activity implements Observer {
     	try {
     		// Terminate the instance
     		mv.stopPlayback();
-    		camera_thread.join();
+    		//camera_thread.join();
     		robotInstance.getDashboardData().deleteObserver(this);
+    		
     		robotInstance.getPacketTransmitter().terminate();
+    		ToggleButton enableBtn = (ToggleButton)findViewById(R.id.enablebtn);
+    		enableBtn.setChecked(false);
+    		ToggleButton connectBtn = (ToggleButton)findViewById(R.id.connectbtn);
+    		connectBtn.setChecked(false);
+    		
     	} catch (Exception e) {
     		// That's not good
     	}
@@ -391,14 +435,21 @@ public class RobotOpenControl extends Activity implements Observer {
 			
 		final String[] dashboardData = new String[bundles.size()];
 			
-		for (int i = 0; i < bundles.size(); i++)
+		for (int i = 0; i < bundles.size(); i++) {
 			dashboardData[i] = bundles.get(i);
+		}
 		
 		runOnUiThread(new Runnable() {
 		    public void run() {
-		    	adapter.clear();
-		    	adapter.addAll(dashboardData);
-		    	adapter.notifyDataSetChanged();
+		    	try {
+		    		joyFeedback.setText("Left (" + joystickHandler.getLeftX() + ", " + joystickHandler.getLeftY() + ") --- Right (" + joystickHandler.getRightX() + ", " + joystickHandler.getRightY() + ")");
+			    	adapter.clear();
+			    	adapter.addAll(dashboardData);
+			    	adapter.notifyDataSetChanged();
+		    	}
+		    	catch (Exception e) {
+		    		// pass
+		    	}
 		    }
 		});
 	}

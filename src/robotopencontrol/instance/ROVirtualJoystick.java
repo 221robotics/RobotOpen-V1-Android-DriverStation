@@ -47,6 +47,22 @@ public class ROVirtualJoystick implements ROJoystick {
 	    return exportValues;
     }
     
+    public int getLeftX() {
+    	return (int)mapValue(leftX, -150, 150, 0, 255);
+    }
+    
+	public int getLeftY() {
+		return (int)mapValue(leftY, -150, 150, 0, 255);
+	}
+
+	public int getRightX() {
+		return (int)mapValue(rightX, -150, 150, 0, 255);
+	}
+
+	public int getRightY() {
+		return (int)mapValue(rightY, -150, 150, 0, 255);
+	}
+    
     private float mapValue(float input, float inMin, float inMax, float outMin, float outMax) {
         return (input - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }

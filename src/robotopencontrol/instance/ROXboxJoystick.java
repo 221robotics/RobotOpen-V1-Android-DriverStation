@@ -147,6 +147,22 @@ public class ROXboxJoystick implements ROJoystick {
     	rightY = coord * -1;
     }
     
+    public int getLeftX() {
+    	return (int)mapValue(leftX, -1, 1, 0, 255);
+    }
+    
+	public int getLeftY() {
+		return (int)mapValue(leftY, -1, 1, 0, 255);
+	}
+
+	public int getRightX() {
+		return (int)mapValue(rightX, -1, 1, 0, 255);
+	}
+
+	public int getRightY() {
+		return (int)mapValue(rightY, -1, 1, 0, 255);
+	}
+    
     public void lTriggerEvent(boolean pressed) {
     	if (pressed)
     		exportValues[BTN7] = (byte)(int)255;

@@ -5,5 +5,7 @@
         <EditTextPreference android:key="ipaddress" android:title="IP Address" android:summary="IP to send controller data" android:defaultValue="192.168.1.22"></EditTextPreference>
         <EditTextPreference android:key="txinterval" android:title="Packet Tx Interval" android:summary="Value (in ms) of packet xmit" android:defaultValue="25"></EditTextPreference>
         <EditTextPreference android:key="ipcam" android:title="Configure Camera" android:summary="URL of MJPEG Stream" android:defaultValue="http://192.168.1.2/video.cgi"></EditTextPreference>
+        <EditTextPreference android:key="ipcam-user" android:title="Camera Username" android:summary="Username for camera stream" android:defaultValue="none"></EditTextPreference>
+        <EditTextPreference android:key="ipcam-pass" android:title="Camera Password" android:summary="Password for camera stream" android:defaultValue="none"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>

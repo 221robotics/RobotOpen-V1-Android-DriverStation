@@ -133,15 +133,25 @@ public class DualJoystickView extends LinearLayout {
 	
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-    	boolean l = stickL.dispatchTouchEvent(ev);
-    	boolean r = stickR.dispatchTouchEvent(ev);
-    	return l || r;
+		try {
+	    	boolean l = stickL.dispatchTouchEvent(ev);
+	    	boolean r = stickR.dispatchTouchEvent(ev);
+	    	return l || r;
+		}
+		catch (Exception e) {
+			return super.dispatchTouchEvent(ev);
+		}
 	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent ev) {
-    	boolean l = stickL.onTouchEvent(ev);
-    	boolean r = stickR.onTouchEvent(ev);
-    	return l || r;
+		try {
+	    	boolean l = stickL.onTouchEvent(ev);
+	    	boolean r = stickR.onTouchEvent(ev);
+	    	return l || r;
+		}
+		catch (Exception e) {
+			return super.dispatchTouchEvent(ev);
+		}
 	}
 }

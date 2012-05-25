@@ -9,6 +9,8 @@ import java.net.URI;
 import java.util.Properties;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -24,9 +26,15 @@ public class MjpegInputStream extends DataInputStream {
     private final static int FRAME_MAX_LENGTH = 40000 + HEADER_MAX_LENGTH;
     private int mContentLength = -1;
 	
-    public static MjpegInputStream read(String url) {
+    public static MjpegInputStream read(String url, String username, String password) {
         HttpResponse res;
-        DefaultHttpClient httpclient = new DefaultHttpClient();		
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        
+        if (username != "none") {
+        	httpclient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, 80),
+        		new UsernamePasswordCredentials(username, password));
+        }
+        
         try {
             res = httpclient.execute(new HttpGet(URI.create(url)));
             return new MjpegInputStream(res.getEntity().getContent());				

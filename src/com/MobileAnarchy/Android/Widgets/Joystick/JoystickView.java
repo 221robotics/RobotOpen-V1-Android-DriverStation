@@ -332,59 +332,63 @@ public class JoystickView extends View {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent ev) {
-	    final int action = ev.getAction();
-		switch (action & MotionEvent.ACTION_MASK) {
-		    case MotionEvent.ACTION_MOVE: {
-	    		return processMoveEvent(ev);
-		    }	    
-		    case MotionEvent.ACTION_CANCEL: 
-		    case MotionEvent.ACTION_UP: {
-		    	if ( pointerId != INVALID_POINTER_ID ) {
-//			    	Log.d(TAG, "ACTION_UP");
-			    	returnHandleToCenter();
-		        	setPointerId(INVALID_POINTER_ID);
-		    	}
-		        break;
-		    }
-		    case MotionEvent.ACTION_POINTER_UP: {
-		    	if ( pointerId != INVALID_POINTER_ID ) {
-			        final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-			        final int pointerId = ev.getPointerId(pointerIndex);
-			        if ( pointerId == this.pointerId ) {
-//			        	Log.d(TAG, "ACTION_POINTER_UP: " + pointerId);
-			        	returnHandleToCenter();
+		try {
+		    final int action = ev.getAction();
+			switch (action & MotionEvent.ACTION_MASK) {
+			    case MotionEvent.ACTION_MOVE: {
+		    		return processMoveEvent(ev);
+			    }	    
+			    case MotionEvent.ACTION_CANCEL: 
+			    case MotionEvent.ACTION_UP: {
+			    	if ( pointerId != INVALID_POINTER_ID ) {
+	//			    	Log.d(TAG, "ACTION_UP");
+				    	returnHandleToCenter();
 			        	setPointerId(INVALID_POINTER_ID);
-			    		return true;
-			        }
-		    	}
-		        break;
+			    	}
+			        break;
+			    }
+			    case MotionEvent.ACTION_POINTER_UP: {
+			    	if ( pointerId != INVALID_POINTER_ID ) {
+				        final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+				        final int pointerId = ev.getPointerId(pointerIndex);
+				        if ( pointerId == this.pointerId ) {
+	//			        	Log.d(TAG, "ACTION_POINTER_UP: " + pointerId);
+				        	returnHandleToCenter();
+				        	setPointerId(INVALID_POINTER_ID);
+				    		return true;
+				        }
+			    	}
+			        break;
+			    }
+			    case MotionEvent.ACTION_DOWN: {
+			    	if ( pointerId == INVALID_POINTER_ID ) {
+			    		int x = (int) ev.getX();
+			    		if ( x >= offsetX && x < offsetX + dimX ) {
+				        	setPointerId(ev.getPointerId(0));
+	//			        	Log.d(TAG, "ACTION_DOWN: " + getPointerId());
+				    		return true;
+			    		}
+			    	}
+			        break;
+			    }
+			    case MotionEvent.ACTION_POINTER_DOWN: {
+			    	if ( pointerId == INVALID_POINTER_ID ) {
+				        final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+				        final int pointerId = ev.getPointerId(pointerIndex);
+			    		int x = (int) ev.getX(pointerId);
+			    		if ( x >= offsetX && x < offsetX + dimX ) {
+	//			        	Log.d(TAG, "ACTION_POINTER_DOWN: " + pointerId);
+				        	setPointerId(pointerId);
+				    		return true;
+			    		}
+			    	}
+			        break;
+			    }
 		    }
-		    case MotionEvent.ACTION_DOWN: {
-		    	if ( pointerId == INVALID_POINTER_ID ) {
-		    		int x = (int) ev.getX();
-		    		if ( x >= offsetX && x < offsetX + dimX ) {
-			        	setPointerId(ev.getPointerId(0));
-//			        	Log.d(TAG, "ACTION_DOWN: " + getPointerId());
-			    		return true;
-		    		}
-		    	}
-		        break;
-		    }
-		    case MotionEvent.ACTION_POINTER_DOWN: {
-		    	if ( pointerId == INVALID_POINTER_ID ) {
-			        final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-			        final int pointerId = ev.getPointerId(pointerIndex);
-		    		int x = (int) ev.getX(pointerId);
-		    		if ( x >= offsetX && x < offsetX + dimX ) {
-//			        	Log.d(TAG, "ACTION_POINTER_DOWN: " + pointerId);
-			        	setPointerId(pointerId);
-			    		return true;
-		    		}
-		    	}
-		        break;
-		    }
-	    }
-		return false;
+			return false;
+		} catch(Exception e) {
+			return false;
+		}
 	}
 	
 	private boolean processMoveEvent(MotionEvent ev) {
