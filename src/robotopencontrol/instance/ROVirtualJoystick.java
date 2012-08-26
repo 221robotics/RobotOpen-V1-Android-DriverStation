@@ -1,6 +1,6 @@
 package robotopencontrol.instance;
 
-import com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView;
+import com.MobileAnarchy.Android.Widgets.Joystick.JoystickView;
 import com.MobileAnarchy.Android.Widgets.Joystick.JoystickMovedListener;
 
 /**
@@ -11,12 +11,17 @@ public class ROVirtualJoystick implements ROJoystick {
     private boolean leftActive, rightActive = false;
     private int leftX, leftY, rightX, rightY = 0;
     
-    private DualJoystickView joystick;
+    private JoystickView joystickLeft;
+    private JoystickView joystickRight;
+    private int tiltAmount = 50;
+    private boolean firingNerf = false;
    
     // Our constructor for the ROJoystickHandler object
-    public ROVirtualJoystick(DualJoystickView dualjoystick) {        
-    	joystick = dualjoystick;
-        joystick.setOnJostickMovedListener(_listenerLeft, _listenerRight);
+    public ROVirtualJoystick(JoystickView leftJoystick, JoystickView rightJoystick) {        
+    	joystickLeft = leftJoystick;
+    	joystickRight = rightJoystick;
+        joystickLeft.setOnJostickMovedListener(_listenerLeft);
+        joystickRight.setOnJostickMovedListener(_listenerRight);
     }
     
     public byte[] exportValues() {
@@ -43,6 +48,15 @@ public class ROVirtualJoystick implements ROJoystick {
         for (int i = currentIndex; i <= 18; i++) {
         	exportValues[i] = (byte)(int)0;
         }
+        
+        // we will exploit the D-Pad byte to transmit some analog data
+        exportValues[8] = (byte)(int)mapValue(tiltAmount, 0, 100, 0, 255);
+        
+        // set btn1 in robotopen on or off based on the button state
+        if (firingNerf)
+        	exportValues[9] = (byte)255;
+        else
+        	exportValues[9] = 0;
 
 	    return exportValues;
     }
@@ -109,4 +123,17 @@ public class ROVirtualJoystick implements ROJoystick {
 			rightActive = false;
 		};
 	};
+
+	@Override
+	public void setTilt(int val) {
+		tiltAmount = val;
+	}
+
+	@Override
+	public void setFire(boolean fire) {
+		if (fire)
+			firingNerf = true;
+		else
+			firingNerf = false;
+	}
 }

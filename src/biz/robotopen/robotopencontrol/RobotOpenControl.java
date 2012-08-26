@@ -10,7 +10,7 @@ import robotopencontrol.instance.ROJoystick;
 import robotopencontrol.instance.ROXboxJoystick;
 import robotopencontrol.instance.ROVirtualJoystick;
 
-import com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView;
+import com.MobileAnarchy.Android.Widgets.Joystick.JoystickView;
 
 import de.mjpegsample.MjpegView.MjpegInputStream;
 import de.mjpegsample.MjpegView.MjpegView;
@@ -34,6 +34,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -44,7 +46,8 @@ public class RobotOpenControl extends Activity implements Observer {
     private SharedPreferences preferences;
     private RORobotInstance robotInstance;
     private ROJoystick joystickHandler;
-	private DualJoystickView joystick;
+	private JoystickView leftJoystick;
+	private JoystickView rightJoystick;
 	private MjpegView mv;
 	private Thread camera_thread;
 	private ArrayAdapter<String> adapter;
@@ -52,6 +55,8 @@ public class RobotOpenControl extends Activity implements Observer {
 	private boolean usbJoystickMode = false;
 	private TextView joyFeedback;
 	private boolean camSourceSet = false;
+	
+	private SeekBar seekBar;
 	
     /** Called when the activity is first created. */
     @Override
@@ -61,6 +66,8 @@ public class RobotOpenControl extends Activity implements Observer {
         setContentView(R.layout.main);
         
         joyFeedback = (TextView)findViewById(R.id.joystickFeedback);
+        
+        seekBar = (SeekBar)findViewById(R.id.nerfTilt);
         
         // Setup DS data list view
         dsArrayList = new ArrayList<String>();
@@ -75,6 +82,31 @@ public class RobotOpenControl extends Activity implements Observer {
      	IntentFilter filter = new IntentFilter();
      	filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
      	registerReceiver(mUsbReceiver, filter);
+     	
+     	seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				try {
+					// update the tilt amount
+					joystickHandler.setTilt(progress);
+				} catch (Exception e) {
+					// scream and die
+				}
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+			}
+     		
+     	});
+
     }
     
     /* Call this whenever the network settings need to be reloaded */
@@ -106,8 +138,9 @@ public class RobotOpenControl extends Activity implements Observer {
             	        
             	        usbJoystickMode = false;
             	        
-            	        joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
-            	        joystickHandler = new ROVirtualJoystick(joystick);
+            	        leftJoystick = (JoystickView)findViewById(R.id.joystickViewLeft);
+            	        rightJoystick = (JoystickView)findViewById(R.id.joystickViewRight);
+            	        joystickHandler = new ROVirtualJoystick(leftJoystick, rightJoystick);
             	        robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
                 	}
                 }
@@ -150,8 +183,9 @@ public class RobotOpenControl extends Activity implements Observer {
     		joystickHandler = new ROXboxJoystick();
     	}
     	else {
-    		joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
-        	joystickHandler = new ROVirtualJoystick(joystick);
+    		leftJoystick = (JoystickView)findViewById(R.id.joystickViewLeft);
+    		rightJoystick = (JoystickView)findViewById(R.id.joystickViewRight);
+        	joystickHandler = new ROVirtualJoystick(leftJoystick, rightJoystick);
     	}
     	
     	robotInstance = new RORobotInstance(joystickHandler);
@@ -234,6 +268,25 @@ public class RobotOpenControl extends Activity implements Observer {
 	    }
 	}
 	
+	public void fireNerfBtn(View v) {
+		// Perform action on clicks
+	    if (((ToggleButton) v).isChecked()) {
+	    	try {
+				// update the tilt amount
+				joystickHandler.setFire(true);
+			} catch (Exception e) {
+				// scream and die
+			}
+	    } else {
+	    	try {
+				// update the tilt amount
+				joystickHandler.setFire(false);
+			} catch (Exception e) {
+				// scream and die
+			}
+	    }
+	}
+	
 	public void onUSBBtn(View v) {
 		// Perform action on clicks
 	    if (((ToggleButton) v).isChecked()) {
@@ -260,8 +313,9 @@ public class RobotOpenControl extends Activity implements Observer {
 	        Toast.makeText(this, "USB Joystick Disabled", Toast.LENGTH_SHORT).show();
 	        usbJoystickMode = false;
 	        
-	        joystick = (DualJoystickView)findViewById(R.id.dualjoystickView);
-	        joystickHandler = new ROVirtualJoystick(joystick);
+	        leftJoystick = (JoystickView)findViewById(R.id.joystickViewLeft);
+    		rightJoystick = (JoystickView)findViewById(R.id.joystickViewRight);
+        	joystickHandler = new ROVirtualJoystick(leftJoystick, rightJoystick);
 	        robotInstance.getPacketTransmitter().setJoystickHandler(joystickHandler);
 	    }
 	}

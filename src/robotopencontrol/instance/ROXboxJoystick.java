@@ -206,4 +206,16 @@ public class ROXboxJoystick implements ROJoystick {
     public boolean controllerActive() {
     	return true;
     }
+
+	@Override
+	public void setTilt(int val) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setFire(boolean fire) {
+		// TODO Auto-generated method stub
+		
+	}
 }
