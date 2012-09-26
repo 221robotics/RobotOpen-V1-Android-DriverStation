@@ -14,7 +14,10 @@ public class ROVirtualJoystick implements ROJoystick {
     private JoystickView joystickLeft;
     private JoystickView joystickRight;
     private int tiltAmount = 50;
+    private boolean readyNerf = false;
     private boolean firingNerf = false;
+    private boolean crabDrive = false;
+    private boolean tankDrive = false;
    
     // Our constructor for the ROJoystickHandler object
     public ROVirtualJoystick(JoystickView leftJoystick, JoystickView rightJoystick) {        
@@ -52,11 +55,29 @@ public class ROVirtualJoystick implements ROJoystick {
         // we will exploit the D-Pad byte to transmit some analog data
         exportValues[8] = (byte)(int)mapValue(tiltAmount, 0, 100, 0, 255);
         
-        // set btn1 in robotopen on or off based on the button state
-        if (firingNerf)
-        	exportValues[9] = (byte)255;
+        // set btn3 in robotopen on or off based on the button state
+        if (readyNerf)
+        	exportValues[11] = (byte)255;
         else
-        	exportValues[9] = 0;
+        	exportValues[11] = 0;
+        
+        // set btn6 in robotopen on or off based on the button state
+        if (firingNerf)
+        	exportValues[14] = (byte)255;
+        else
+        	exportValues[14] = 0;
+        
+        // set btn7 in robotopen on or off based on the button state
+        if (tankDrive)
+        	exportValues[15] = (byte)255;
+        else
+        	exportValues[15] = 0;
+        
+        // set btn8 in robotopen on or off based on the button state
+        if (crabDrive)
+        	exportValues[16] = (byte)255;
+        else
+        	exportValues[16] = 0;
 
 	    return exportValues;
     }
@@ -127,6 +148,30 @@ public class ROVirtualJoystick implements ROJoystick {
 	@Override
 	public void setTilt(int val) {
 		tiltAmount = val;
+	}
+	
+	@Override
+	public void setCrab(boolean crab) {
+		if (crab)
+			crabDrive = true;
+		else
+			crabDrive = false;
+	}
+	
+	@Override
+	public void setTank(boolean tank) {
+		if (tank)
+			tankDrive = true;
+		else
+			tankDrive = false;
+	}
+	
+	@Override
+	public void setReady(boolean ready) {
+		if (ready)
+			readyNerf = true;
+		else
+			readyNerf = false;
 	}
 
 	@Override

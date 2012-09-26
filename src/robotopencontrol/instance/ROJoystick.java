@@ -11,5 +11,8 @@ public interface ROJoystick {
 	public int getRightY();
 	
 	public void setTilt(int val);
+	public void setCrab(boolean crab);
+	public void setTank(boolean tank);
+	public void setReady(boolean ready);
 	public void setFire(boolean fire);
 }

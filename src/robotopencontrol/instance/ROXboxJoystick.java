@@ -218,4 +218,22 @@ public class ROXboxJoystick implements ROJoystick {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void setCrab(boolean crab) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTank(boolean tank) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setReady(boolean ready) {
+		// TODO Auto-generated method stub
+		
+	}
 }

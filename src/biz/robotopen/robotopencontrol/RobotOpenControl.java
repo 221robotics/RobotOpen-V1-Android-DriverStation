@@ -25,15 +25,17 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -57,6 +59,7 @@ public class RobotOpenControl extends Activity implements Observer {
 	private boolean camSourceSet = false;
 	
 	private SeekBar seekBar;
+	private Button fireBtn;
 	
     /** Called when the activity is first created. */
     @Override
@@ -68,6 +71,8 @@ public class RobotOpenControl extends Activity implements Observer {
         joyFeedback = (TextView)findViewById(R.id.joystickFeedback);
         
         seekBar = (SeekBar)findViewById(R.id.nerfTilt);
+        
+        fireBtn = (Button)findViewById(R.id.nerfbtn);
         
         // Setup DS data list view
         dsArrayList = new ArrayList<String>();
@@ -105,6 +110,28 @@ public class RobotOpenControl extends Activity implements Observer {
 				// TODO Auto-generated method stub
 			}
      		
+     	});
+     	
+     	fireBtn.setOnTouchListener(new OnTouchListener() {
+     	    @Override
+     	    public boolean onTouch(View v, MotionEvent event) {
+     	        if(event.getAction() == MotionEvent.ACTION_DOWN) {
+     	        	try {
+    					// update the tilt amount
+    					joystickHandler.setFire(true);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+     	        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+     	        	try {
+    					// update the tilt amount
+    					joystickHandler.setFire(false);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+     	        }
+     	        return true;
+     	    }
      	});
 
     }
@@ -194,6 +221,9 @@ public class RobotOpenControl extends Activity implements Observer {
     	// Update networking settings
     	updateNetworking();
     	
+    	// Invalidate source - may have changed
+    	camSourceSet = false;
+    	
         mv = (MjpegView)findViewById(R.id.camera);
         mv.setDisplayMode(MjpegView.SIZE_BEST_FIT);
         mv.showFps(true);
@@ -216,13 +246,11 @@ public class RobotOpenControl extends Activity implements Observer {
 		        	public void run() {
 		        		camSourceSet = true;
 		        		mv.setSource(MjpegInputStream.read(URL, camuser, campass));
-		        		Log.d("ADSDSFFS", "MADE IT HERE");
 		        	}
 		        });
 		        camera_thread.start();
 		        try {
 					camera_thread.join();
-					Log.d("ADSDSFFS", "JOINED!");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -268,19 +296,19 @@ public class RobotOpenControl extends Activity implements Observer {
 	    }
 	}
 	
-	public void fireNerfBtn(View v) {
+	public void readyNerfBtn(View v) {
 		// Perform action on clicks
 	    if (((ToggleButton) v).isChecked()) {
 	    	try {
 				// update the tilt amount
-				joystickHandler.setFire(true);
+				joystickHandler.setReady(true);
 			} catch (Exception e) {
 				// scream and die
 			}
 	    } else {
 	    	try {
 				// update the tilt amount
-				joystickHandler.setFire(false);
+				joystickHandler.setReady(false);
 			} catch (Exception e) {
 				// scream and die
 			}
@@ -506,6 +534,48 @@ public class RobotOpenControl extends Activity implements Observer {
 		    	}
 		    }
 		});
+	}
+	
+	public void onRadioButtonClicked(View view) {
+	    // Is the button now checked?
+	    boolean checked = ((RadioButton) view).isChecked();
+	    
+	    // Check which radio button was clicked
+	    switch(view.getId()) {
+	        case R.id.normalDrive:
+	            if (checked) {
+	            	try {
+    					// update the tilt amount
+    					joystickHandler.setTank(false);
+    					joystickHandler.setCrab(false);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+	            }
+	            break;
+	        case R.id.tankDrive:
+	        	if (checked) {
+	            	try {
+    					// update the tilt amount
+    					joystickHandler.setTank(true);
+    					joystickHandler.setCrab(false);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+	            }
+	            break;
+	        case R.id.crabDrive:
+	        	if (checked) {
+	            	try {
+    					// update the tilt amount
+    					joystickHandler.setTank(false);
+    					joystickHandler.setCrab(true);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+	            }
+	            break;
+	    }
 	}
 
 }
