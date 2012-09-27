@@ -35,7 +35,7 @@ import android.view.View.OnTouchListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -74,6 +74,38 @@ public class RobotOpenControl extends Activity implements Observer {
         
         fireBtn = (Button)findViewById(R.id.nerfbtn);
         
+        RadioGroup radGrp = (RadioGroup) findViewById(R.id.driveMode);
+        radGrp.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+          public void onCheckedChanged(RadioGroup arg0, int id) {
+            switch (id) {
+	            case R.id.normalDrive:
+	            	try {
+    					joystickHandler.setTank(false);
+    					joystickHandler.setCrab(false);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+		            break;
+		        case R.id.tankDrive:
+	            	try {
+    					joystickHandler.setTank(true);
+    					joystickHandler.setCrab(false);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+		            break;
+		        case R.id.crabDrive:
+	            	try {
+    					joystickHandler.setTank(false);
+    					joystickHandler.setCrab(true);
+    				} catch (Exception e) {
+    					// scream and die
+    				}
+		            break;
+            }
+          }
+        });
+        
         // Setup DS data list view
         dsArrayList = new ArrayList<String>();
         dsArrayList.add("Waiting for DS data...");
@@ -102,12 +134,12 @@ public class RobotOpenControl extends Activity implements Observer {
 
 			@Override
 			public void onStartTrackingTouch(SeekBar arg0) {
-				// TODO Auto-generated method stub
+
 			}
 
 			@Override
 			public void onStopTrackingTouch(SeekBar arg0) {
-				// TODO Auto-generated method stub
+
 			}
      		
      	});
@@ -534,48 +566,6 @@ public class RobotOpenControl extends Activity implements Observer {
 		    	}
 		    }
 		});
-	}
-	
-	public void onRadioButtonClicked(View view) {
-	    // Is the button now checked?
-	    boolean checked = ((RadioButton) view).isChecked();
-	    
-	    // Check which radio button was clicked
-	    switch(view.getId()) {
-	        case R.id.normalDrive:
-	            if (checked) {
-	            	try {
-    					// update the tilt amount
-    					joystickHandler.setTank(false);
-    					joystickHandler.setCrab(false);
-    				} catch (Exception e) {
-    					// scream and die
-    				}
-	            }
-	            break;
-	        case R.id.tankDrive:
-	        	if (checked) {
-	            	try {
-    					// update the tilt amount
-    					joystickHandler.setTank(true);
-    					joystickHandler.setCrab(false);
-    				} catch (Exception e) {
-    					// scream and die
-    				}
-	            }
-	            break;
-	        case R.id.crabDrive:
-	        	if (checked) {
-	            	try {
-    					// update the tilt amount
-    					joystickHandler.setTank(false);
-    					joystickHandler.setCrab(true);
-    				} catch (Exception e) {
-    					// scream and die
-    				}
-	            }
-	            break;
-	    }
 	}
 
 }
